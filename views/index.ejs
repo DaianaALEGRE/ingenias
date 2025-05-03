@@ -1,0 +1,25 @@
+<%- include('head') %>
+
+<div class="container-cont">
+    <h2><%= title %></h2> 
+    <h6><%= msj %></h6>  
+</div>
+<div class="Container">
+    <% for (let i = 0; i < 4; i++) { %>
+        <div class="card" style="width: 18rem;">
+            <div class="card-body">
+                <h5 class="card-title"><%= cartelera[i].titulo %></h5>
+                <h6 class="card-subtitle mb-2 text-body-secondary"><%= cartelera[i].categoria %></h6>
+                <p class="card-text"><%= cartelera[i].resumen %></p>
+                
+                <% if (cartelera[i].temporadas > 0) { %>
+                    <p class="card-text">Temporadas: <%= cartelera[i].temporadas %></p>
+                <% } %>
+                <p class="card-text">Género: <%= cartelera[i].genero %></p>
+            </div>
+        </div>
+    <% } %>
+</div>
+<div class="container-btn"><a href="<%= carteleraURL %>" class="boton-ver-todo">Ver todo</a></div>
+
+<%- include('footer') %>

@@ -1,6 +1,4 @@
 
-console.log('lola')
-
 const express = require('express');
 const app = express();
 const PORT= process.env.PORT || 3080;
@@ -9,52 +7,76 @@ const dotenv=require('dotenv');
 dotenv.config();
 //path concatena las direcciones,como variable global en el sitio
 const path= require('path');
+const { title } = require('process');
 
-const filepath=path.join(__dirname,'dataBase',process.env.DATA_FILE );
+const filepath=path.join(__dirname,'ingenias',process.env.DATA_FILE );
+const trailerflix = require('./dataBase/trailerflix.json');
+
+app.set('view engine','ejs') //selecciono el motor de plantilla, en este caso ejs
+app.use(express.static('Public')); //para acceder a los archivos dentro de la carpeta public
 
 //todas las url
 app.get('/', (req, res) => {
-    res.send('Bienvenida de la plataforma');
+    res.statusCode = 202;
+    const data={
+        title:'Bienvenidas a nuestro sitio', //titulo de la pagina
+        msj:'Algunas de nuestras recomendaciones ', 
+        cartelera: trailerflix,//envio el archivo
+        carteleraURL:'/catalogo', //url para cuando haga clic en ver todo
+
+    }
+        res.render('index',data); //envio el archivo ejs que debe renderizar
   });
 
-   
-   app.get('/catalogo',(req,res)=>{
+app.get('/catalogo',(req,res)=>{
+    res.statusCode = 202;
+    const data={
+        title:'Cartelera', //titulo de la pagina
+        cartelera: trailerflix //envio el archivo
+    }
+        res.render('pelicula',data); //envio el archivo ejs que debe renderizar
+    }); 
 
+    app.get('/titulo/:title', (req, res) => {
+        const titSolic = req.params.title.toLowerCase(); // guardo el parámetro y lo convierto a minúsculas
+        const peliFiltrada = trailerflix.filter(peli =>  peli.titulo.toLowerCase().includes(titSolic) //.includes(titSolic)  busca una coincidenc min no total
+        );
+    
+        const data = {
+            title: `Resultados para: ${titSolic}`,
+            cartelera: peliFiltrada // envio el res filtrado
+        }
+    
         res.statusCode = 202;
-        res.send('Muestra el catalogo de peliculas');
+        res.render('pelicula', data); 
+    });
 
-    }); app.get('/titulo/:title',(req,res)=> {
-
-        res.statusCode = 202;
-        res.send('Busqueda por titulo');
-
-    }); app.get('/categoria/:cat',(req,res)=> {
+app.get('/categoria/:cat',(req,res)=> {
 
         res.statusCode = 202;
         res.send('Busqueda por categoria');
+    });
 
-    }); app.get('/reparto/:act',(req,res)=> {
+app.get('/reparto/:act',(req,res)=> {
 
         res.statusCode = 202;
         res.send('Busqueda por actor');
+    });
 
-    }); app.get('/trailer/:id',(req,res) =>{
+app.get('/trailer/:id',(req,res) =>{
 
         res.statusCode = 202;
         res.send('Busqueda por id el trailes, si tiene devuelvo o configurar un mensaje de que no hay trailers');
-
     });
 
-    app.use((req,res)=>{
-        res.status(404).send('la pagina que buscas no existe');
+app.use((req,res)=>{
+        res.status(404).render('404', {title:'Error 404- Pagina no encontrada'})
     });
     
 
 app.listen(PORT, () => {
     console.log(`servidor escuchándose en el puerto: ${PORT}`);
 });
-
-
 
 
 console.log('DATA_FILE =', process.env.DATA_FILE);
