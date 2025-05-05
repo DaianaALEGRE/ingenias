@@ -19,7 +19,7 @@ const trailerflix = dataObj.map(({ titulo, reparto, categoria, ...rest }) => ({
     ...rest,
     titulo: titulo?.toLowerCase().trim(),
     reparto: reparto?.toLowerCase().trim(),
-    categoria: categoria?.toLowerCase().trim(),
+    categoria: categoria?.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, ""),
 }));
 //todas las url (catalogo,titulo,reparto,catergoria,id)
 app.get('/', (req, res) => {
@@ -40,7 +40,7 @@ app.get('/catalogo', (req, res) => {
     const resultadoT = trailerflix.filter(p => p.titulo.includes(tituloSolicitado))
         ;
     if (resultadoT.length === 0) {
-        return res.status(404).json({ mesage: 'No se encontro coincidencias' });
+        return res.status(404).json({ message: 'No se encontro coincidencias' });
     }
     else {
         res.json(resultadoT);
@@ -52,7 +52,7 @@ app.get('/categoria/:cat', (req, res) => {
      const categoria = req.params.cat.toLowerCase().trim();
     const resultadoC = trailerflix.filter(c => c.categoria.includes(categoria));
     if (resultadoC.length === 0) {
-        return res.status(404).json({ mesage: 'No hay resultados para tu busqueda' });
+        return res.status(404).json({ message: 'No hay resultados para tu busqueda' });
     } else { res.json(resultadoC); }
 
     //Reparto
@@ -64,7 +64,7 @@ app.get('/categoria/:cat', (req, res) => {
 
 
     if (resultado.length === 0) {
-        return res.status(404).json({ mesage: 'no se encontro coincidencias' })
+        return res.status(404).json({ message: 'no se encontro coincidencias' })
     } else {
         const mapeado = resultado.map(({ titulo, reparto }) => ({
             titulo, reparto
@@ -85,7 +85,7 @@ app.get('/categoria/:cat', (req, res) => {
     const trailerId = trailerflix.find(p => p.id === trailers); 
 
     if (!trailerId) {
-        return res.status(404).json({ mesage: 'no se encontro coincidencias' });
+        return res.status(404).json({ message: 'no se encontro coincidencias' });
     }
 //trailer por id y mapeado para q solo devuelva titulo y trailer(despues lo voy a desestructurar)
     if (!trailerId.trailer) {
