@@ -1,88 +1,106 @@
 
 const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 3080;
-const fs = require('fs');
-const dotenv = require('dotenv');
+const PORT= process.env.PORT || 3008;
+const fs= require('fs');
+const dotenv=require('dotenv');
 dotenv.config();
 //path concatena las direcciones,como variable global en el sitio
 const path = require('path');
-const { title } = require('process');
+const { json } = require('stream/consumers');
 
-const filepath = path.join(__dirname, 'ingenias', process.env.DATA_FILE);
-const trailerflix = require('./dataBase/trailerflix.json');
-
-app.set('view engine', 'ejs') //selecciono el motor de plantilla, en este caso ejs
-app.use(express.static('Public')); //para acceder a los archivos dentro de la carpeta public
-
-//todas las url
+const filepath = path.join(__dirname, 'dataBase', process.env.DATA_FILE);
+//tomo mi path con fs para transformar en objeto como la consigna pide
+const dataBase = fs.readFileSync(filepath, 'utf-8');
+// base de objetos solo parseados
+const dataObj = JSON.parse(dataBase);
+// base de objetos para trabajarlos 
+const trailerflix = dataObj.map(({ titulo, reparto, categoria, ...rest }) => ({
+    ...rest,
+    titulo: titulo?.toLowerCase().trim(),
+    reparto: reparto?.toLowerCase().trim(),
+    categoria: categoria?.toLowerCase().trim(),
+}));
+//todas las url (catalogo,titulo,reparto,catergoria,id)
 app.get('/', (req, res) => {
-    res.statusCode = 202;
-    const data = {
-        title: 'Bienvenidas a nuestro sitio', //titulo de la pagina
-        msj: 'Algunas de nuestras recomendaciones ',
-        cartelera: trailerflix,//envio el archivo
-        carteleraURL: '/catalogo', //url para cuando haga clic en ver todo
-        coincidencia: false,
-    }
-    res.render('index', data); //envio el archivo ejs que debe renderizar
+
+    res.send('Bienvenida de la plataforma');
+    res.status(200)
+
 });
+
 
 app.get('/catalogo', (req, res) => {
-    res.statusCode = 202;
-    const data = {
-        title: 'Cartelera', //titulo de la pagina
-        cartelera: trailerflix,//envio el archivo
-        coincidencia: false
+
+    res.json(dataObj);
+
+
+}); app.get('/titulo/:title', (req, res) => {
+    const tituloSolicitado = req.params.title.toLowerCase();
+    const resultadoT = trailerflix.filter(p => p.titulo.includes(tituloSolicitado))
+        ;
+    if (resultadoT.length === 0) {
+        return res.status(404).json({ mesage: 'No se encontro coincidencias' });
     }
-    res.render('pelicula', data); //envio el archivo ejs que debe renderizar
-});
+    else {
+        res.json(resultadoT);
+    }
+}); app.get('/categoria/:cat', (req, res) => {
+    //filter
+    const categoria = req.params.cat.toLocaleLowerCase();
+    const resultadoC = trailerflix.filter(c => c.categoria.includes(categoria));
+    if (!resultadoC) {
+        return res.status(404).json({ mesage: 'No hay resultados para tu busqueda' });
+    } else { res.json(resultadoC); }
 
-app.get('/titulo/:title', (req, res) => {
-    const titSolic = req.params.title.toLowerCase(); // guardo el parámetro y lo convierto a minúsculas
-    const peliFiltrada = trailerflix.filter(peli => peli.titulo.toLowerCase().includes(titSolic) //.includes(titSolic)  busca una coincidenc min no total
-    );
 
-    const data = {
-        title: `Resultados para: ${titSolic}`,
-        cartelera: peliFiltrada, // envio el res filtrado
-        coincidencia: peliFiltrada.length === 0,
+}); app.get('/reparto/:act', (req, res) => {
+    const reparto = req.params.act.toLowerCase();
+    const resultado = trailerflix.filter(r => r.reparto && r.reparto.includes(reparto));
+
+
+    if (resultado.length === 0) {
+        return res.status(404).json({ mesage: 'no se encontro coincidencias' })
+    } else {
+        mapeado = resultado.map(({ titulo, reparto }) => ({
+            titulo, reparto
+        }))
+
+
+        res.json(mapeado)
+    };
+
+
+}); app.get('/trailer/:id', (req, res) => {
+    const trailers = Number(req.params.id); // nombre tal como usaste antes
+
+    if (isNaN(trailers)) {
+        return res.status(400).json({ message: 'ID inválido. Debe ser un número.' });
     }
 
-    res.statusCode = 202;
-    res.render('pelicula', data);
-});
+    const trailerId = trailerflix.find(p => p.id === trailers); // p en vez de I o nombre más técnico
 
-app.get('/categoria/:cat', (req, res) => {
-
-    const catSol = req.params.cat.toLowerCase(); // guardo el parámetro y lo convierto a minúsculas
-    const catFiltrada = trailerflix.filter(peli => peli.categoria.toLowerCase().includes(catSol) //.includes(titSolic)  busca una coincidenc min no total
-    );
-
-    const data = {
-        title: `Resultados para la categoria: ${catSol}`,
-        cartelera: catFiltrada, // envio el res filtrado
-        coincidencia: catFiltrada.length === 0,
+    if (!trailerId) {
+        return res.status(404).json({ mesage: 'no se encontro coincidencias' });
     }
 
-    res.statusCode = 202;
-    res.render('pelicula', data)
-});
+    if (!trailerId.trailer) {
+        return res.json({
+            id: trailerId.id,
+            titulo: trailerId.titulo,
+            message: 'No hay trailer disponible para esta película o serie.'
+        });
+    }
 
-app.get('/reparto/:act', (req, res) => {
-
-    res.statusCode = 202;
-    res.send('Busqueda por actor');
-});
-
-app.get('/trailer/:id', (req, res) => {
-
-    res.statusCode = 202;
-    res.send('Busqueda por id el trailes, si tiene devuelvo o configurar un mensaje de que no hay trailers');
+    res.json({
+        id: trailerId.id,
+        titulo: trailerId.titulo,
+        trailer: trailerId.trailer
+    });
 });
 
 app.use((req, res) => {
-    res.status(404).render('404', { title: 'Error 404- Pagina no encontrada' })
+    res.status(404).send('la pagina que buscas no existe');
 });
 
 
@@ -92,3 +110,4 @@ app.listen(PORT, () => {
 
 
 console.log('DATA_FILE =', process.env.DATA_FILE);
+console.log(typeof dataObj[0].id);
