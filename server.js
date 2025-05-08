@@ -78,9 +78,9 @@ app.get('/categoria/:cat', (req, res) => {
 }); app.get('/trailer/:id', (req, res) => {
     const trailers = Number(req.params.id); 
 
-    if (isNaN(trailers)) {
+    if (isNaN(trailers)) 
         return res.status(400).json({ message: 'ID inválido. Debe ser un número.' });
-    }
+  
 
     const trailerId = trailerflix.find(p => p.id === trailers); 
 
@@ -88,19 +88,12 @@ app.get('/categoria/:cat', (req, res) => {
         return res.status(404).json({ message: 'no se encontro coincidencias' });
     }
 //trailer por id y mapeado para q solo devuelva titulo y trailer(despues lo voy a desestructurar)
-    if (!trailerId.trailer) {
-        return res.json({
-            id: trailerId.id,
-            titulo: trailerId.titulo,
-            message: 'No hay trailer disponible para esta película o serie.'
-        });
-    }
+res.json({
+    id: trailerId.id,
+    titulo: trailerId.titulo,
+    trailer: trailerId?.trailer || "No hay trailer disponible para esta película o serie."
+});
 
-    res.json({
-        id: trailerId.id,
-        titulo: trailerId.titulo,
-        trailer: trailerId.trailer
-    });
 });
 
 app.use((req, res) => {
