@@ -8,6 +8,7 @@ dotenv.config();
 //path concatena las direcciones,como variable global en el sitio
 const path = require('path');
 const { json } = require('stream/consumers');
+const { title } = require('process');
 
 const filepath = path.join(__dirname, 'dataBase', process.env.DATA_FILE);
 //tomo mi path con fs para transformar en objeto como la consigna pide
@@ -109,7 +110,7 @@ res.json({
 });
 
 app.use((req, res) => {
-    res.status(404).send('la pagina que buscas no existe');
+    res.status(404).render('404', { title: 'Error 404- Pagina no encontrada' })
 });
 
 

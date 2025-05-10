@@ -12,7 +12,7 @@ header{
   
 }
 
-h5,h6,P{
+h1,h5,h6,P,a{
   margin: 1rem !important;
 }
 
@@ -76,4 +76,4 @@ h5,h6,P{
     text-align: center;
   }
   
- 
+a{color:rgb(217 23 23)!important; }
