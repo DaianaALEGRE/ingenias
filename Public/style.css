@@ -1,9 +1,21 @@
+body {
+  background-color: #121212 !important;
+  color: white !important;
+}
+a { text-decoration: none !important;
+}
 header{
     display: flex;
     align-items: center;
     padding: 10px;
-    background-color: rgb(245, 98, 98);
+    background-color: rgb(217 23 23)
+  
 }
+
+h5,h6,P{
+  margin: 1rem !important;
+}
+
 .Container {
     display: flex;
     flex-wrap: wrap; 
@@ -12,27 +24,47 @@ header{
     padding: 20px;
   }
   
-  .card {
-    flex: 0 0 auto; 
+  .card { margin-left: 4%;
+
   }
+ .card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px); /* levanta la card */
+  box-shadow: 0 10px 20px rgba(255, 255, 255, 0.15); /* sombra blanca suave */
+}
+ 
   
   h2{
     text-align: center;
   }
+  
 
   footer{
     margin-top: 20px;
   }
 
-  .boton-ver-todo {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    text-align: center;
-    text-decoration: none;
-    border-radius: 5px;
-  }
+
+.boton-ver-todo {
+  text-decoration: none !important;
+  background-color: black !important;
+  color: white !important;
+  border: 2px solid white !important;
+  padding: 10px 20px;
+  border-radius: 5px;
+  text-transform: uppercase;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.boton-ver-todo:hover {
+  background-color: white !important;
+  color: black !important;
+  border-color: black !important;
+}
   
   .boton-ver-todo {
     display: block;
@@ -44,6 +76,4 @@ header{
     text-align: center;
   }
   
-  .boton-ver-todo:hover {
-    background-color: #0056b3;
-  }
+ 

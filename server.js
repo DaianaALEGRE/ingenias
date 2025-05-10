@@ -21,13 +21,25 @@ const trailerflix = dataObj.map(({ titulo, reparto, categoria, ...rest }) => ({
     reparto: reparto?.toLowerCase().trim(),
     categoria: categoria?.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, ""),
 }));
+
 //todas las url (catalogo,titulo,reparto,catergoria,id)
+app.set('view engine','ejs');
+app.use(express.static(path.join(__dirname, 'public')));
+
 app.get('/', (req, res) => {
+const data = {
+    title: 'Bienvenidas a nuestro sitio', //titulo de la pagina
+    msj: 'Algunas de nuestras recomendaciones ',
 
-    res.send('Bienvenida de la plataforma');
-    res.status(200)
 
-});
+    cartelera: trailerflix,//envio el archivo
+
+
+    carteleraURL: '/catalogo', //url para cuando haga clic en ver todo
+    coincidencia: false,
+}
+res.render('index', data); //envio el archivo ejs que debe renderizar
+}) ;
 //catalogo
 
 app.get('/catalogo', (req, res) => {
@@ -104,6 +116,8 @@ app.use((req, res) => {
 app.listen(PORT, () => {
     console.log(`servidor escuchándose en el puerto: ${PORT}`);
 });
+
+
 
 
 console.log('DATA_FILE =', process.env.DATA_FILE);
