@@ -164,5 +164,28 @@ router.get("/actores", async (req, res) => {
   }
 });
 
+router.get('/tags/:nombre', async (req, res) => {
+  const nombre = req.params.nombre.toLowerCase();
+
+  try {
+    const resultados = await tags.findAll({
+      where: {
+        nombre: {
+          [Op.like]: `%${nombre}%`
+        }
+      }
+    });
+
+    if (resultados.length === 0) {
+      return res.status(404).json({ message: 'No se encontraron tags' });
+    }
+
+    res.json(resultados);
+  } catch (error) {
+    console.error('Error al buscar tags por nombre:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
 
 module.exports = router;
