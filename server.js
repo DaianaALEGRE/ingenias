@@ -10,7 +10,7 @@ const { sequelize } = require('./config/db');
 
 const PORT = process.env.PORT || 3008;
 
-mysql://root:dZuvqHnLucpYlvVHcJImXtfUMvsgXlaS@hopper.proxy.rlwy.net:16742/railway
+// detalles
 
 //todas las url (catalogo,titulo,reparto,catergoria,id)
 app.set('view engine','ejs');
