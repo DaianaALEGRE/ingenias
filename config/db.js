@@ -1,5 +1,8 @@
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+
 const { Sequelize } = require('sequelize');
-require('dotenv').config();
 
 const sequelize = new Sequelize(
   process.env.DB_NAME,
@@ -7,7 +10,8 @@ const sequelize = new Sequelize(
   process.env.DB_PASS,
   {
     host: process.env.DB_HOST,
-    dialect: 'mysql'
+    port: process.env.DB_PORT || 3306,
+    dialect: 'mysql',
   }
 );
 
@@ -19,4 +23,5 @@ const sequelize = new Sequelize(
     console.error('Error al conectar con la base de datos:', error);
   }
 })();
+
 module.exports = sequelize;
