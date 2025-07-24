@@ -14,8 +14,9 @@ const sequelize = new Sequelize(
 (async () => {
   try {
     await sequelize.authenticate();
-    console.log('Conexión exitosa a la base de datos SQL 🎉');
+    console.log('Conexión exitosa a la base de datos SQL');
   } catch (error) {
     console.error('Error al conectar con la base de datos:', error);
   }
 })();
+module.exports = sequelize;
