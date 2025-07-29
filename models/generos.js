@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  return sequelize.define('generos', {
+  const Generos = sequelize.define('generos', {
     id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
@@ -13,4 +13,14 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: false,
     tableName: 'generos'
   });
+
+  Generos.associate = (models) => {
+    Generos.belongsToMany(models.Cartelera, {
+      through: 'titulos_generos',
+      foreignKey: 'genero_id',
+      otherKey: 'titulo_id'
+    });
+  };
+
+  return Generos;
 };

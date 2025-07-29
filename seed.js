@@ -5,7 +5,7 @@ import fs from 'fs/promises';
 dotenv.config();
 
 function checkNull(value) {
-  return value === undefined ? null : value;
+  return value === undefined || value === null || value === 'N/A' ? null : value;
 }
 
 async function main() {
@@ -23,43 +23,45 @@ async function main() {
 
   console.log('🔌 Conectado a la base de datos');
 
-
-  // Insertar categorias únicas
+  // Insertar categorías únicas
   const categorias = [...new Set(trailers.map(t => t.categoria))];
   for (const nombre of categorias) {
     await connection.execute('INSERT IGNORE INTO categorias (nombre) VALUES (?)', [nombre]);
   }
 
-  // Insertar generos únicos
-  const generos = [...new Set(trailers.map(t => t.genero))];
+  // Insertar géneros únicos
+  const generosSet = new Set();
+  trailers.forEach(t => {
+    if (t.tags) {
+      t.tags.split(',').forEach(g => generosSet.add(g.trim()));
+    }
+    if (t.genero) {
+      generosSet.add(t.genero.trim());
+    }
+  });
+  const generos = [...generosSet];
   for (const nombre of generos) {
     await connection.execute('INSERT IGNORE INTO generos (nombre) VALUES (?)', [nombre]);
   }
 
-  // Obtener mapa categoria_nombre -> id
+  // Mapas de ID
   const [catsRows] = await connection.query('SELECT * FROM categorias');
-  const categoriaMap = {};
-  for (const cat of catsRows) categoriaMap[cat.nombre] = cat.id;
+  const categoriaMap = Object.fromEntries(catsRows.map(cat => [cat.nombre, cat.id]));
 
-  // Obtener mapa genero_nombre -> id
   const [genRows] = await connection.query('SELECT * FROM generos');
-  const generoMap = {};
-  for (const gen of genRows) generoMap[gen.nombre] = gen.id;
+  const generoMap = Object.fromEntries(genRows.map(g => [g.nombre, g.id]));
 
   for (const t of trailers) {
     const categoria_id = categoriaMap[t.categoria];
-    const genero_id = generoMap[t.genero];
+    const duracion = parseInt(t.duracion) || null;
+    const temporadas = isNaN(parseInt(t.temporadas)) ? null : parseInt(t.temporadas);
+    const resumen = t.resumen || '';
+    const trailer = t.trailer || '';
 
-    const duracion = checkNull(t.duracion) || 'N/A';
-    const temporadas = isNaN(parseInt(t.temporadas)) ? 0 : parseInt(t.temporadas);
-    const resumen = checkNull(t.resumen);
-    const trailerUrl = checkNull(t.trailer);
-
-    await connection.execute(
-      `INSERT INTO trailers
-      (id, poster, titulo, categoria_id, genero_id, resumen, temporadas, duracion, trailer)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [t.id, t.poster, t.titulo, categoria_id, genero_id, t.resumen || '', temporadas, duracion, trailerUrl]
+    const [carteleraRes] = await connection.execute(
+      `INSERT INTO cartelera (id, poster, titulo, categoria_id, temporadas, resumen, trailer, duracion)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [t.id, t.poster, t.titulo, categoria_id, temporadas, resumen, trailer, duracion]
     );
 
     // Insertar tags
@@ -69,26 +71,36 @@ async function main() {
         await connection.execute('INSERT IGNORE INTO tags (nombre) VALUES (?)', [tagNombre]);
         const [tagRow] = await connection.query('SELECT id FROM tags WHERE nombre = ?', [tagNombre]);
         const tagId = tagRow[0].id;
-        await connection.execute('INSERT IGNORE INTO trailer_tags (trailer_id, tag_id) VALUES (?, ?)', [t.id, tagId]);
+        await connection.execute('INSERT IGNORE INTO titulos_tags (titulo_id, tag_id) VALUES (?, ?)', [t.id, tagId]);
+
+        // Insertar también en titulos_generos si aplica
+        if (generoMap[tagNombre]) {
+          await connection.execute('INSERT IGNORE INTO titulos_generos (titulo_id, genero_id) VALUES (?, ?)', [t.id, generoMap[tagNombre]]);
+        }
       }
     }
 
-    // Insertar actores y traileractor
+    // Insertar actor y reparto
     if (t.reparto) {
       const actores = t.reparto.split(',').map(a => a.trim());
-      for (const actorNombre of actores) {
-        await connection.execute('INSERT IGNORE INTO actores (nombrecompleto) VALUES (?)', [actorNombre]);
-        const [actorRow] = await connection.query('SELECT id FROM actores WHERE nombrecompleto = ?', [actorNombre]);
+      for (const actor of actores) {
+        await connection.execute('INSERT IGNORE INTO actores (nombre) VALUES (?)', [actor]);
+        const [actorRow] = await connection.query('SELECT id FROM actores WHERE nombre = ?', [actor]);
         const actorId = actorRow[0].id;
-        await connection.execute('INSERT INTO traileractor (trailer_id, actor_id, personaje) VALUES (?, ?, ?)', [t.id, actorId, '']);
+        await connection.execute('INSERT IGNORE INTO reparto (titulo_id, actor_id) VALUES (?, ?)', [t.id, actorId]);
       }
+    }
+
+    // Insertar género principal (si lo tiene) como relación
+    if (t.genero && generoMap[t.genero]) {
+      await connection.execute('INSERT IGNORE INTO titulos_generos (titulo_id, genero_id) VALUES (?, ?)', [t.id, generoMap[t.genero]]);
     }
   }
 
-  console.log('🎉 Base de datos poblada con éxito');
+  console.log('✅ Base de datos poblada con éxito');
   await connection.end();
 }
 
 main().catch(err => {
-  console.error('Error en seed:', err);
+  console.error('❌ Error en seed:', err);
 });

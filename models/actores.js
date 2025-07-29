@@ -1,16 +1,26 @@
 module.exports = (sequelize, DataTypes) => {
-  return sequelize.define('actores', {
+  const Actores = sequelize.define('actores', {
     id: {
       type: DataTypes.INTEGER,
-      primaryKey: true,
       autoIncrement: true,
+      primaryKey: true
     },
-    nombrecompleto: {
-      type: DataTypes.STRING,
-      allowNull: false,
+    nombre: {
+      type: DataTypes.STRING(100),
+      allowNull: false
     }
   }, {
-    tableName: 'actores',
     timestamps: false,
+    tableName: 'actores'
   });
+
+  Actores.associate = (models) => {
+   Actores.belongsToMany(models.Cartelera, {
+      through: 'reparto',
+      foreignKey: 'actor_id',
+      otherKey: 'titulo_id'
+    });
+  };
+
+  return Actores;
 };
