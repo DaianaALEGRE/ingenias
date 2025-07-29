@@ -5,6 +5,7 @@ dotenv.config();
 
 const { Op } = require('sequelize');
 const db = require('../models/index.models');
+const categorias = require('../models/categorias');
 
 const { 
   sequelize, 
@@ -118,6 +119,7 @@ router.get('/categoria/:cat', async (req, res) => {
         },
         {
           model: Actores,
+          as :'actores',
           through: { attributes: [] }
         }
       ]
@@ -167,48 +169,44 @@ router.get('/reparto/:act', async (req, res) => {
   }
 });
 
-
-// Buscar trailer por ID
-router.get('/trailer/:id', async (req, res) => {
-  const id = Number(req.params.id);
-
-  if (isNaN(id)) return res.status(400).json({ message: 'ID inválido' });
-
+// solo los que tienen trailer
+router.get('/trailers', async (req, res) => {
   try {
-    const resultado = await Cartelera.findByPk(id, {
-      include: [
-        Categorias,
-        Generos,
-        {
-          model: Tags,
-          through: { attributes: [] }
+    const trailers = await Cartelera.findAll({
+      attributes: ['id', 'titulo', 'trailer'], // solo estos campos
+      where: {
+        trailer: {
+          [Op.ne]: null, // solo los que tienen trailer
         },
-        {
-          model: Actores,
-          through: { attributes: [] }
-        }
-      ]
+      },
     });
 
+    res.json(trailers);
+  } catch (error) {
+    console.error('Error al obtener los trailers:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+// Buscar trailer por ID
+router.get('/trailer/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const resultado = await Cartelera.findByPk(id);
+
     if (!resultado) {
-      return res.status(404).json({ message: 'No se encontró el trailer' });
+      return res.status(404).json({ mensaje: 'No se encontró el título' });
     }
 
     res.json({
-      id: resultado.id,
       titulo: resultado.titulo,
-      trailer: resultado.trailer || 'No hay trailer disponible',
-      categorias: resultado.categoria ? resultado.categoria.nombre : null,
-      generos: resultado.genero ? resultado.genero.nombre : null,
-      tags: resultado.tags?.map(t => t.nombre) || [],
-      reparto: resultado.actores?.map(a => a.nombre) || []
+      trailer: resultado.trailer || 'No hay trailer disponible'
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error interno' });
+    console.error('Error al obtener trailer:', error);
+    res.status(500).json({ mensaje: 'Error interno del servidor' });
   }
 });
-
 // Listar géneros
 router.get('/generos', async (req, res) => {
   try {

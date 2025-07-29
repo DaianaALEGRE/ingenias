@@ -13,7 +13,7 @@ Trailerflix es una API RESTful que permite gestionar información sobre trailers
 
 ## Base de Datos Trailerflix
 
-El diseño fue realizado utilizando [DB Designer](./net.db_1.png) para organizar las entidades que componen una plataforma de películas y series. A continuación se detallan las tablas principales y las relaciones entre ellas.
+El diseño fue realizado utilizando ![DB Designer](./db_nueva.png) para organizar las entidades que componen una plataforma de películas y series. A continuación se detallan las tablas principales y las relaciones entre ellas.
 
 ### 📄 Tablas
 
@@ -131,6 +131,10 @@ Tablas intermedias N:N para vincular múltiples géneros o tags a un mismo títu
 
 ### Categorías
 - `GET /categoria/:cat`: busca trailers por categoría (búsqueda parcial)
+
+### Tags
+- `GET /tags/:nombre`: detalle por tags
+
 
 ## Relaciones entre tablas
 - Un actor puede participar en muchos trailers (relación N:M)
