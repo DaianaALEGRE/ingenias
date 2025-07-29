@@ -8,21 +8,24 @@ const db = require('../models/index.models');
 
 const { 
   sequelize, 
-  actores, 
-  categorias, 
-  generos, 
-  reparto, 
-  tags, 
-  cartelera 
+  Actores, 
+  Categorias, 
+ Generos, 
+  Reparto, 
+  Tags, 
+  Cartelera,
+  Titulos_generos,
+  Titulos_tags,
+  Ranking
 } = db;
 
 // Ruta raíz - muestra 4 títulos aleatorios
 router.get('/', async (req, res) => {
   try {
-    const carteleraRandom = await cartelera.findAll({
+    const carteleraRandom = await Cartelera.findAll({
       order: sequelize.literal('RAND()'),
       limit: 4,
-      include: [categorias, generos]
+      include: [Categorias, Generos]
     });
 
     res.render('index', {
@@ -41,16 +44,17 @@ router.get('/', async (req, res) => {
 // Listado completo de cartelera con datos relacionados
 router.get('/catalogo', async (req, res) => {
   try {
-    const resultados = await cartelera.findAll({
+    const resultados = await Cartelera.findAll({
       include: [
-        categorias,
-        generos,
+        Categorias,
+        Generos,
         {
-          model: tags,
+          model: Tags,
           through: { attributes: [] }
         },
         {
-          model: actores,
+          model: Actores,
+          as: 'actores',
           through: { attributes: [] }
         }
       ]
@@ -67,19 +71,19 @@ router.get('/titulo/:title', async (req, res) => {
   const tituloSolicitado = req.params.title.toLowerCase();
 
   try {
-    const resultados = await cartelera.findAll({
+    const resultados = await Cartelera.findAll({
       where: {
         titulo: { [Op.like]: `%${tituloSolicitado}%` }
       },
       include: [
-        categorias,
-        generos,
+        Categorias,
+        Generos,
         {
-          model: tags,
+          model: Tags,
           through: { attributes: [] }
         },
         {
-          model: actores,
+          model: Actores,
           through: { attributes: [] }
         }
       ]
@@ -101,19 +105,19 @@ router.get('/categoria/:cat', async (req, res) => {
   const categoria = req.params.cat.toLowerCase();
 
   try {
-    const resultados = await cartelera.findAll({
+    const resultados = await Cartelera.findAll({
       include: [
         {
-          model: categorias,
+          model: Categorias,
           where: { nombre: { [Op.like]: `%${categoria}%` } }
         },
-        generos,
+        Generos,
         {
-          model: tags,
+          model: Tags,
           through: { attributes: [] }
         },
         {
-          model: actores,
+          model: Actores,
           through: { attributes: [] }
         }
       ]
@@ -135,29 +139,34 @@ router.get('/reparto/:act', async (req, res) => {
   const actorNombre = req.params.act.toLowerCase();
 
   try {
-    const resultados = await actores.findAll({
+    const actores = await Actores.findAll({
       where: {
         nombre: { [Op.like]: `%${actorNombre}%` }
       },
-      include: [
-        {
-          model: cartelera,
-          through: { attributes: [] },
-          include: [categorias, generos, { model: tags, through: { attributes: [] } }]
-        }
-      ]
+      include: [{
+        model: Cartelera,
+        as: 'titulos',
+        through: { attributes: [] },
+        include: [
+          Categorias,
+          Generos,
+          { model: Tags, through: { attributes: [] } },
+          { model: Actores, as: 'actores', through: { attributes: [] } }
+        ]
+      }]
     });
 
-    if (resultados.length === 0) {
+    if (actores.length === 0) {
       return res.status(404).json({ message: 'No se encontraron actores con ese nombre' });
     }
 
-    res.json(resultados);
+    res.json(actores);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error interno' });
   }
 });
+
 
 // Buscar trailer por ID
 router.get('/trailer/:id', async (req, res) => {
@@ -166,16 +175,16 @@ router.get('/trailer/:id', async (req, res) => {
   if (isNaN(id)) return res.status(400).json({ message: 'ID inválido' });
 
   try {
-    const resultado = await cartelera.findByPk(id, {
+    const resultado = await Cartelera.findByPk(id, {
       include: [
-        categorias,
-        generos,
+        Categorias,
+        Generos,
         {
-          model: tags,
+          model: Tags,
           through: { attributes: [] }
         },
         {
-          model: actores,
+          model: Actores,
           through: { attributes: [] }
         }
       ]
@@ -203,7 +212,7 @@ router.get('/trailer/:id', async (req, res) => {
 // Listar géneros
 router.get('/generos', async (req, res) => {
   try {
-    const listaGeneros = await generos.findAll();
+    const listaGeneros = await Generos.findAll();
     res.json(listaGeneros);
   } catch (error) {
     console.error('Error al obtener géneros:', error);
@@ -216,7 +225,7 @@ router.get('/tags/:nombre', async (req, res) => {
   const nombre = req.params.nombre.toLowerCase();
 
   try {
-    const resultados = await tags.findAll({
+    const resultados = await Tags.findAll({
       where: {
         nombre: {
           [Op.like]: `%${nombre}%`
@@ -240,7 +249,7 @@ router.get('/actores', async (req, res) => {
   try {
     const { nombre } = req.query;
 
-    const listaActores = await actores.findAll({
+    const listaActores = await Actores.findAll({
       where: nombre ? {
         nombre: {
           [Op.like]: `%${nombre}%`

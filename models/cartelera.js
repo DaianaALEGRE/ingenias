@@ -1,4 +1,5 @@
 const { DataTypes } = require('sequelize');
+const { combineTableNames } = require('sequelize/lib/utils');
 
 module.exports = (sequelize) => {
   const Cartelera = sequelize.define('cartelera', {
@@ -35,7 +36,7 @@ module.exports = (sequelize) => {
       type: DataTypes.INTEGER,
       allowNull: true
     }
-  }, {
+  }, {tableName: 'cartelera',
     timestamps: false
   });
 //asociasiones Categorias, Tags,Generos,Actores,Ranking.
@@ -59,7 +60,8 @@ module.exports = (sequelize) => {
     Cartelera.belongsToMany(models.Actores, {
       through: 'reparto',
       foreignKey: 'titulo_id',
-      otherKey: 'actor_id'
+      otherKey: 'actor_id',
+       as: 'actores'
     });
 
     Cartelera.hasOne(models.Ranking, {

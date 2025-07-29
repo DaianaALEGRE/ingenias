@@ -8,5 +8,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       primaryKey: true
     }
-  }, { timestamps: false });
+  }, { timestamps: false,
+      tableName: 'reparto'
+   });
 };
