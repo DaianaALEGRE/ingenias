@@ -29,10 +29,12 @@ router.get('/', async (req, res) => {
       include: [Categorias, Generos]
     });
 
+    const carteleraJSON = carteleraRandom.map(titulo => titulo.toJSON());
+
     res.render('index', {
       title: 'Bienvenidas a nuestro sitio',
       msj: 'Algunas de nuestras recomendaciones',
-      cartelera: carteleraRandom,
+      cartelera: carteleraJSON,
       carteleraURL: '/catalogo',
       coincidencia: false,
     });

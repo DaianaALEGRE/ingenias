@@ -1,37 +1,49 @@
 <%- include('head') %>
 
-    <div class="container-cont">
-        <h2>
-            <%= title %>
-        </h2>
-        <h6>
-            <%= msj %>
+<div class="container-cont">
+  <h2><%= title %></h2>
+  <h6><%= msj %></h6>
+</div>
+
+<div class="Container">
+  <% for (let i = 0; i < cartelera.length; i++) { %>
+    <div class="card" style="width: 18rem;">
+      <div class="card-body">
+        <h5 class="card-title"><%= cartelera[i].titulo %></h5>
+        
+        <!-- categoría -->
+        <h6 class="card-subtitle mb-2 text-body-secondary">
+          <%= cartelera[i].categoria?.nombre %>
         </h6>
+        
+    <%
+                const palabras = cartelera[i].resumen.split(" ");
+                const resumenCorto = palabras.length > 2 ? palabras.slice(0, 25).join(" ") + "..." : cartelera[i].resumen;
+            %>
+            <p class="card-text"><%= resumenCorto %></p>
+        
+        <% if (cartelera[i].temporadas > 0) { %>
+          <p class="card-text">Temporadas: <%= cartelera[i].temporadas %></p>
+        <% } %>
+        
+        <!-- géneros  -->
+        <% if (cartelera[i].generos && cartelera[i].generos.length > 0) { %>
+          <p class="card-text">
+            Género: 
+            <% cartelera[i].generos.forEach((g, idx) => { %>
+              <%= g.nombre %><%= idx < cartelera[i].generos.length - 1 ? ', ' : '' %>
+            <% }) %>
+          </p>
+        <% } else { %>
+          <p class="card-text">Género: Sin datos</p>
+        <% } %>
+      </div>
     </div>
-    <div class="Container">
-        <% for (let i=0; i < 4; i++) { %>
-            <div class="card" style="width: 18rem;">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <%= cartelera[i].titulo %>
-                    </h5>
-                    <h6 class="card-subtitle mb-2 text-body-secondary">
-                        <%= cartelera[i].categoria %>
-                    </h6>
-                    <p class="card-text">
-                        <%= cartelera[i].resumen %>
-                    </p>
+  <% } %>
+</div>
 
-                    <% if (cartelera[i].temporadas> 0) { %>
-                        <p class="card-text">Temporadas: <%= cartelera[i].temporadas %>
-                        </p>
-                        <% } %>
-                            <p class="card-text">Género: <%= cartelera[i].genero %>
-                            </p>
-                </div>
-            </div>
-            <% } %>
-    </div>
-    <div class="container-btn"><a href="<%= carteleraURL %>" class="boton-ver-todo">Ver todo</a></div>
+<div class="container-btn">
+  <a href="<%= carteleraURL %>" class="boton-ver-todo">Ver todo</a>
+</div>
 
-    <%- include('footer') %>
+<%- include('footer') %>
